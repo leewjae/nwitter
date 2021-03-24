@@ -10,7 +10,7 @@ const Auth = () => {
       const {
         target : {name, value},
       } = event;
-      if (name ==="email") {
+      if (name === "email") {
         setEmail(value)
       } else if (name === "password") {
         setPassword(value)
@@ -40,6 +40,7 @@ const Auth = () => {
 
     const toogleAccount = () => setNewAccount(prev => !prev)
     const onSocialClick = async(event) => {
+
       const {
         target : {name},
       } = event;

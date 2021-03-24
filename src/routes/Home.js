@@ -6,7 +6,7 @@ import {v4 as uuidv4} from "uuid";
 const Home = ({userObj}) => {
     const [nweet, setNweet] = useState("");
     const [nweets, setNweets] = useState([]);
-    const [attachment, setAttachment] = useState();
+    const [attachment, setAttachment] = useState("");
     // const getNweets = async() => {
     //     const dbNweets = await dbService.collection("nweets").get();
     //     dbNweets.forEach((document) => {
@@ -19,7 +19,7 @@ const Home = ({userObj}) => {
     //     );
     // }
     useEffect(() => { 
-        dbService.collection("nweets").onSnapshot((snapshot) => {
+        dbService.collection("nweets").orderBy("createdAt").onSnapshot((snapshot) => {
             const nweetArray = snapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data()
@@ -30,15 +30,29 @@ const Home = ({userObj}) => {
 
     const onSubmit = async (event) => {
         event.preventDefault();
-        const fileRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`)
-        const response = await fileRef.putString(attachment, "data_url");
-        console.log(response);
+        let attachmentUrl = "";
+        if (attachment !== "") {
+            const attachmentRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`)
+            const response = await attachmentRef.putString(attachment, "data_url");
+            attachmentUrl = await response.ref.getDownloadURL();
+        }
         // await dbService.collection("nweets").add({
         //     text : nweet,
         //     createdAt: Date.now(),
         //     creatorId : userObj.uid
         // });
         // setNweet("");
+        const nweetObj  = {
+            text : nweet,
+            createdAt: Date.now(),
+            creatorId : userObj.uid,
+            attachmentUrl
+        }
+
+        await dbService.collection("nweets").add(nweetObj)
+        // add nweet to our database.
+        setNweet("");
+        setAttachment("");
     };
 
     const onChange=(event)=> {
@@ -76,7 +90,7 @@ const Home = ({userObj}) => {
         {attachment &&
         <>
          <div>
-            <img src= {attachment} width="50px" height="50px" />
+            <img src= {attachment} width="50px" height="50px" alt="Your uploaded attachment" />
             <button onClick = {onClearAtachment}>Clear</button>
         </div>
         </>
